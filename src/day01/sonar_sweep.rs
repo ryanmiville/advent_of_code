@@ -1,15 +1,23 @@
 fn main() {
-    let example = sonar_sweep(unsafe_parse(EXAMPLE));
-    assert_eq!(example, 7);
+    let example = sonar_sweep(unsafe_parse(EXAMPLE), 3);
+    assert_eq!(example, 5);
 
-    let answer = sonar_sweep(unsafe_parse(INPUT));
+    let answer = sonar_sweep(unsafe_parse(INPUT), 3);
     println!("{}", answer);
 }
 
-fn sonar_sweep(input: Vec<i32>) -> i32 {
-    input
-        .windows(2)
-        .fold(0, |acc, w| if w[0] < w[1] { acc + 1 } else { acc })
+fn sonar_sweep(input: Vec<i32>, window_size: usize) -> i32 {
+    input.windows(window_size + 1).fold(0, |acc, w| {
+        if less_than(&w[..window_size], &w[1..]) {
+            acc + 1
+        } else {
+            acc
+        }
+    })
+}
+
+fn less_than(lhs: &[i32], rhs: &[i32]) -> bool {
+    lhs.iter().sum::<i32>() < rhs.iter().sum()
 }
 
 fn unsafe_parse(s: &str) -> Vec<i32> {
