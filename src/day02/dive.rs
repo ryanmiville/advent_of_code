@@ -1,16 +1,17 @@
 fn main() {
     let example_cmds = unsafe_parse_cmds(EXAMPLE);
-    assert_eq!(dive(example_cmds), 150);
+    assert_eq!(dive(example_cmds), 900);
 
     let input_cmds = unsafe_parse_cmds(INPUT);
     print!("{}", dive(input_cmds))
 }
 
 fn dive(cmds: impl Iterator<Item = Command>) -> i32 {
-    let start = Pos { x: 0, y: 0 };
+    let start = State { h: 0, d: 0, aim: 0 };
     let end = cmds.fold(start, |p, cmd| p.next(cmd));
-    end.x * end.y
+    end.h * end.d
 }
+
 enum Command {
     Forward(i32),
     Up(i32),
@@ -27,25 +28,29 @@ fn unsafe_parse_cmds(str: &str) -> impl Iterator<Item = Command> + '_ {
         })
 }
 
-struct Pos {
-    x: i32,
-    y: i32,
+struct State {
+    h: i32,
+    d: i32,
+    aim: i32,
 }
 
-impl Pos {
-    fn next(&self, cmd: Command) -> Pos {
+impl State {
+    fn next(&self, cmd: Command) -> State {
         match cmd {
-            Command::Forward(x) => Pos {
-                x: self.x + x,
-                y: self.y,
+            Command::Forward(x) => State {
+                h: self.h + x,
+                d: self.d + x * self.aim,
+                aim: self.aim,
             },
-            Command::Up(y) => Pos {
-                x: self.x,
-                y: self.y - y,
+            Command::Up(d) => State {
+                h: self.h,
+                d: self.d,
+                aim: self.aim - d,
             },
-            Command::Down(y) => Pos {
-                x: self.x,
-                y: self.y + y,
+            Command::Down(d) => State {
+                h: self.h,
+                d: self.d,
+                aim: self.aim + d,
             },
         }
     }
