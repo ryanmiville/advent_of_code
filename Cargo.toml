@@ -9,4 +9,7 @@ edition = "2021"
 name = "sonar_sweep"
 path = "src/day01/sonar_sweep.rs"
 
+[[bin]]
+name = "dive"
+path = "src/day02/dive.rs"
 [dependencies]
