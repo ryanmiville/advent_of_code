@@ -12,4 +12,9 @@ path = "src/day01/sonar_sweep.rs"
 [[bin]]
 name = "dive"
 path = "src/day02/dive.rs"
+
+[[bin]]
+name = "binary_diagnostics"
+path = "src/day03/binary_diagnostics.rs"
+
 [dependencies]
