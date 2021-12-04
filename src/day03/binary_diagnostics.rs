@@ -1,36 +1,34 @@
 fn main() {
-    let example = binary_diagnostics(EXAMPLE.split_whitespace());
-    assert_eq!(power_consumption(example), 198);
+    let example = binary_diagnostics(EXAMPLE.split_whitespace().collect());
+    assert_eq!(power_consumption(&example), 198);
+    assert_eq!(life_support(&example), 230);
 
-    let answer = binary_diagnostics(INPUT.split_whitespace());
-    println!("{}", power_consumption(answer));
+    let answer = binary_diagnostics(INPUT.split_whitespace().collect());
+    println!("{}", life_support(&answer));
 }
 
-fn binary_diagnostics<'a>(nums: impl Iterator<Item = &'a str>) -> Diagnostics {
-    let mut peek_nums = nums.peekable();
-    let mut count = vec![0; peek_nums.peek().unwrap().len()];
-    for num in peek_nums {
-        for (i, d) in num.char_indices() {
-            match d {
-                '0' => count[i] -= 1,
-                '1' => count[i] += 1,
+fn binary_diagnostics(nums: Vec<&str>) -> Diagnostics {
+    let num_bits = nums[0].len();
+
+    let count = nums.iter().fold(vec![0; num_bits], |mut acc, num| {
+        for (i, b) in num.char_indices() {
+            acc[i] += match b {
+                '0' => -1,
+                '1' => 1,
                 _ => panic!("bad input"),
             }
         }
-    }
+        acc
+    });
+
     Diagnostics {
         gamma: gamma(&count),
         epsilon: epsilon(&count),
+        oxygen: String::from(oxygen_generator(&nums, 0)),
+        co2: String::from(co2_scrubber(&nums, 0)),
     }
 }
 
-fn power_consumption(d: Diagnostics) -> i32 {
-    bin_to_dec(d.gamma) * bin_to_dec(d.epsilon)
-}
-
-fn bin_to_dec(b: String) -> i32 {
-    i32::from_str_radix(b.as_str(), 2).unwrap()
-}
 fn gamma(c: &Vec<i32>) -> String {
     let mut g = vec!['x'; c.len()];
     for (i, &d) in c.iter().enumerate() {
@@ -46,17 +44,56 @@ fn epsilon(c: &Vec<i32>) -> String {
     }
     e.iter().collect()
 }
-#[derive()]
+
 struct Diagnostics {
     gamma: String,
     epsilon: String,
+    oxygen: String,
+    co2: String,
+}
+fn power_consumption(d: &Diagnostics) -> i32 {
+    bin_to_dec(&d.gamma) * bin_to_dec(&d.epsilon)
 }
 
-// impl Display for Diagnostics {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(f, "(gamma: {}, epsilon: {})", self.gamma, self.epsilon)
-//     }
-// }
+fn life_support(d: &Diagnostics) -> i32 {
+    bin_to_dec(&d.oxygen) * bin_to_dec(&d.co2)
+}
+
+fn bin_to_dec(b: &String) -> i32 {
+    i32::from_str_radix(b.as_str(), 2).unwrap()
+}
+
+fn co2_scrubber<'a>(nums: &Vec<&'a str>, pos: usize) -> &'a str {
+    if nums.len() == 1 {
+        &nums[0]
+    } else {
+        let (zero, one): (Vec<&str>, Vec<&str>) = nums
+            .iter()
+            .partition(|&n| n.chars().skip(pos).next().unwrap() == '0');
+
+        if zero.len() <= one.len() {
+            co2_scrubber(&zero, pos + 1)
+        } else {
+            co2_scrubber(&one, pos + 1)
+        }
+    }
+}
+
+fn oxygen_generator<'a>(nums: &Vec<&'a str>, pos: usize) -> &'a str {
+    if nums.len() == 1 {
+        &nums[0]
+    } else {
+        let (zero, one): (Vec<&str>, Vec<&str>) = nums
+            .iter()
+            .partition(|&n| n.chars().skip(pos).next().unwrap() == '0');
+
+        if zero.len() <= one.len() {
+            oxygen_generator(&one, pos + 1)
+        } else {
+            oxygen_generator(&zero, pos + 1)
+        }
+    }
+}
 
 const EXAMPLE: &str = "00100
 11110
