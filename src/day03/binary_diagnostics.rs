@@ -8,9 +8,9 @@ fn main() {
 }
 
 fn binary_diagnostics(nums: Vec<&str>) -> Diagnostics {
-    let num_bits = nums[0].len();
+    let size = nums[0].len();
 
-    let count = nums.iter().fold(vec![0; num_bits], |mut acc, num| {
+    let count = nums.iter().fold(vec![0; size], |mut acc, num| {
         for (i, b) in num.char_indices() {
             acc[i] += match b {
                 '0' => -1,
@@ -24,23 +24,26 @@ fn binary_diagnostics(nums: Vec<&str>) -> Diagnostics {
     Diagnostics {
         gamma: gamma(&count),
         epsilon: epsilon(&count),
-        oxygen: String::from(oxygen_generator(&nums, 0)),
-        co2: String::from(co2_scrubber(&nums, 0)),
+        oxygen: String::from(oxygen_generator(&nums)),
+        co2: String::from(co2_scrubber(&nums)),
     }
 }
 
 fn gamma(c: &Vec<i32>) -> String {
-    let mut g = vec!['x'; c.len()];
-    for (i, &d) in c.iter().enumerate() {
-        g[i] = if d < 0 { '0' } else { '1' };
-    }
-    g.iter().collect()
+    pick_by_commonality(c, |d| d < &0)
 }
 
 fn epsilon(c: &Vec<i32>) -> String {
+    pick_by_commonality(c, |d| d > &0)
+}
+
+fn pick_by_commonality<F>(c: &Vec<i32>, f: F) -> String
+where
+    F: Fn(&i32) -> bool,
+{
     let mut e = vec!['x'; c.len()];
     for (i, &d) in c.iter().enumerate() {
-        e[i] = if d > 0 { '0' } else { '1' };
+        e[i] = if f(&d) { '0' } else { '1' };
     }
     e.iter().collect()
 }
@@ -63,34 +66,31 @@ fn bin_to_dec(b: &String) -> i32 {
     i32::from_str_radix(b.as_str(), 2).unwrap()
 }
 
-fn co2_scrubber<'a>(nums: &Vec<&'a str>, pos: usize) -> &'a str {
-    if nums.len() == 1 {
-        &nums[0]
-    } else {
-        let (zero, one): (Vec<&str>, Vec<&str>) = nums
-            .iter()
-            .partition(|&n| n.chars().skip(pos).next().unwrap() == '0');
-
-        if zero.len() <= one.len() {
-            co2_scrubber(&zero, pos + 1)
-        } else {
-            co2_scrubber(&one, pos + 1)
-        }
-    }
+fn co2_scrubber<'a>(nums: &Vec<&'a str>) -> &'a str {
+    let f = |z: &Vec<&str>, o: &Vec<&str>| z.len() <= o.len();
+    find_last(nums, 0, f)
 }
 
-fn oxygen_generator<'a>(nums: &Vec<&'a str>, pos: usize) -> &'a str {
+fn oxygen_generator<'a>(nums: &Vec<&'a str>) -> &'a str {
+    let f = |z: &Vec<&str>, o: &Vec<&str>| z.len() > o.len();
+    find_last(nums, 0, f)
+}
+
+fn find_last<'a, F>(nums: &Vec<&'a str>, pos: usize, f: F) -> &'a str
+where
+    F: Fn(&Vec<&str>, &Vec<&str>) -> bool,
+{
     if nums.len() == 1 {
         &nums[0]
     } else {
-        let (zero, one): (Vec<&str>, Vec<&str>) = nums
+        let (zero, one) = nums
             .iter()
             .partition(|&n| n.chars().skip(pos).next().unwrap() == '0');
 
-        if zero.len() <= one.len() {
-            oxygen_generator(&one, pos + 1)
+        if f(&zero, &one) {
+            find_last(&zero, pos + 1, f)
         } else {
-            oxygen_generator(&zero, pos + 1)
+            find_last(&one, pos + 1, f)
         }
     }
 }
