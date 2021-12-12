@@ -27,45 +27,46 @@ struct Signal {
 
 impl Signal {
     fn cypher(&self) -> HashMap<char, Num> {
-        let mut nums: HashMap<char, Num> = HashMap::with_capacity(10);
-        let mut patterns: Vec<Num> = self.patterns.clone().iter().map(|p| Num::from(p)).collect();
-
+        let mut patterns: Vec<Num> = self.patterns.iter().map(|p| Num::from(p)).collect();
         patterns.sort_by(|a, b| a.segs.len().cmp(&b.segs.len()));
+        // sorting puts numbers in this order:
+        // [1, 7, 4, [2?, 3?, 5?], [6?, 9?, 0?], 8]
+        //           [ len = 5  ]  [ len = 6  ]
+        let one = patterns.remove(0);
+        let seven = patterns.remove(0);
+        let four = patterns.remove(0);
+        let eight = patterns.remove(6);
 
-        nums.insert('1', patterns[0].clone());
-        nums.insert('7', patterns[1].clone());
-        nums.insert('4', patterns[2].clone());
-        nums.insert('8', patterns[9].clone());
+        let mut fives: Vec<_> = patterns.drain(0..=2).collect();
+        let mut sixes: Vec<_> = patterns.drain(..).collect();
 
-        let fives = &patterns[3..=5];
-        let sixes = &patterns[6..=8];
+        let three = Signal::remove_filter(&mut fives, |n| n.contains(&one));
+        let nine = Signal::remove_filter(&mut sixes, |n| n.contains(&three));
+        let zero = Signal::remove_filter(&mut sixes, |n| n.contains(&seven) && !n.is(&nine));
+        let six = sixes.remove(0);
+        let five = Signal::remove_filter(&mut fives, |n| six.contains(n));
+        let two = fives.remove(0);
 
-        let three = fives
-            .iter()
-            .find(|&n| n.contains(nums.get(&'1').unwrap()))
-            .unwrap();
+        HashMap::from([
+            ('0', zero),
+            ('1', one),
+            ('2', two),
+            ('3', three),
+            ('4', four),
+            ('5', five),
+            ('6', six),
+            ('7', seven),
+            ('8', eight),
+            ('9', nine),
+        ])
+    }
 
-        nums.insert('3', three.clone());
-
-        let nine = sixes.iter().find(|n| n.contains(three)).unwrap();
-        nums.insert('9', nine.clone());
-
-        let zero = sixes
-            .iter()
-            .find(|n| n.contains(nums.get(&'7').unwrap()) && !n.is(nine))
-            .unwrap();
-        nums.insert('0', zero.clone());
-
-        let six = sixes.iter().find(|n| !n.is(nine) && !n.is(zero)).unwrap();
-        nums.insert('6', six.clone());
-
-        let five = fives.iter().find(|n| six.contains(n)).unwrap();
-        nums.insert('5', five.clone());
-
-        let two = fives.iter().find(|n| !n.is(three) && !n.is(five)).unwrap();
-        nums.insert('2', two.clone());
-
-        nums
+    fn remove_filter<F>(v: &mut Vec<Num>, f: F) -> Num
+    where
+        F: Fn(&Num) -> bool,
+    {
+        let (idx, _) = v.iter().enumerate().find(|(_i, n)| f(n)).unwrap();
+        v.remove(idx)
     }
 }
 
@@ -83,10 +84,11 @@ impl Solve for Signal {
 
     fn output(&self) -> i32 {
         let cypher = self.cypher();
-        let output: Vec<Num> = self.output.clone().iter().map(|p| Num::from(p)).collect();
+        let output: Vec<Num> = self.output.iter().map(|p| Num::from(p)).collect();
 
         let mut answer: Vec<char> = Vec::with_capacity(output.len());
         for n in output {
+            // could be removed with a 'same elements' hash key
             for (k, v) in &cypher {
                 if n.is(&v) {
                     answer.push(*k);
@@ -112,7 +114,6 @@ impl FromStr for Signal {
     }
 }
 
-#[derive(Clone)]
 struct Num {
     segs: Vec<char>,
 }
@@ -123,6 +124,7 @@ impl Num {
             segs: pattern.chars().collect(),
         }
     }
+
     fn contains(&self, other: &Num) -> bool {
         other.segs.iter().all(|c| self.segs.contains(c))
     }
@@ -135,6 +137,7 @@ impl Num {
 fn parse(input: &str) -> Vec<Signal> {
     input.split("\n").map(|s| s.parse().unwrap()).collect()
 }
+
 #[test]
 fn test() {
     let input =
