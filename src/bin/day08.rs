@@ -26,7 +26,7 @@ struct Signal {
 }
 
 impl Signal {
-    fn cypher(&self) -> HashMap<char, Num> {
+    fn decoder(&self) -> HashMap<u8, char> {
         let mut patterns: Vec<Num> = self.patterns.iter().map(|p| Num::from(p)).collect();
         patterns.sort_by(|a, b| a.segs.len().cmp(&b.segs.len()));
         // sorting puts numbers in this order:
@@ -48,16 +48,16 @@ impl Signal {
         let two = fives.remove(0);
 
         HashMap::from([
-            ('0', zero),
-            ('1', one),
-            ('2', two),
-            ('3', three),
-            ('4', four),
-            ('5', five),
-            ('6', six),
-            ('7', seven),
-            ('8', eight),
-            ('9', nine),
+            (zero.hash(), '0'),
+            (one.hash(), '1'),
+            (two.hash(), '2'),
+            (three.hash(), '3'),
+            (four.hash(), '4'),
+            (five.hash(), '5'),
+            (six.hash(), '6'),
+            (seven.hash(), '7'),
+            (eight.hash(), '8'),
+            (nine.hash(), '9'),
         ])
     }
 
@@ -83,22 +83,15 @@ impl Solve for Signal {
     }
 
     fn output(&self) -> i32 {
-        let cypher = self.cypher();
-        let output: Vec<Num> = self.output.iter().map(|p| Num::from(p)).collect();
+        let decoder = self.decoder();
 
-        let mut answer: Vec<char> = Vec::with_capacity(output.len());
-        for n in output {
-            // could be removed with a 'same elements' hash key
-            for (k, v) in &cypher {
-                if n.is(&v) {
-                    answer.push(*k);
-                }
-            }
-        }
-
-        let digits: String = answer.iter().collect();
-
-        digits.parse().unwrap()
+        self.output
+            .iter()
+            .map(|p| Num::from(p))
+            .map(|c| *decoder.get(&c.hash()).unwrap())
+            .collect::<String>()
+            .parse::<i32>()
+            .unwrap()
     }
 }
 
@@ -131,6 +124,32 @@ impl Num {
 
     fn is(&self, other: &Num) -> bool {
         self.segs.len() == other.segs.len() && self.contains(other)
+    }
+
+    fn hash(&self) -> u8 {
+        let mut key: u8 = 0b0000_0000;
+
+        let a: u8 = 0b1000_0000;
+        let b: u8 = 0b0100_0000;
+        let c: u8 = 0b0010_0000;
+        let d: u8 = 0b0001_0000;
+        let e: u8 = 0b0000_1000;
+        let f: u8 = 0b0000_0100;
+        let g: u8 = 0b0000_0010;
+
+        for elem in &self.segs {
+            match elem {
+                'a' => key |= a,
+                'b' => key |= b,
+                'c' => key |= c,
+                'd' => key |= d,
+                'e' => key |= e,
+                'f' => key |= f,
+                'g' => key |= g,
+                _ => (),
+            }
+        }
+        key
     }
 }
 
