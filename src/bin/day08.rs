@@ -2,22 +2,22 @@ use std::{collections::HashMap, str::FromStr};
 
 fn main() {
     let signals = parse(INPUT);
-    println!("part 1: {}", signals.sum_easy_numbers());
-    println!("part 2: {}", signals.output());
+    println!("part 1: {}", signals.part1());
+    println!("part 2: {}", signals.part2());
 }
 
 trait Solve {
-    fn sum_easy_numbers(&self) -> i32;
-    fn output(&self) -> i32;
+    fn part1(&self) -> i32;
+    fn part2(&self) -> i32;
 }
 
 impl Solve for Vec<Signal> {
-    fn sum_easy_numbers(&self) -> i32 {
-        self.iter().map(|s| s.sum_easy_numbers()).sum()
+    fn part1(&self) -> i32 {
+        self.iter().map(|s| s.part1()).sum()
     }
 
-    fn output(&self) -> i32 {
-        self.iter().map(|s| s.output()).sum()
+    fn part2(&self) -> i32 {
+        self.iter().map(|s| s.part2()).sum()
     }
 }
 struct Signal {
@@ -32,20 +32,23 @@ impl Signal {
         // sorting puts numbers in this order:
         // [1, 7, 4, [2?, 3?, 5?], [6?, 9?, 0?], 8]
         //           [ len = 5  ]  [ len = 6  ]
-        let one = patterns.remove(0);
-        let seven = patterns.remove(0);
-        let four = patterns.remove(0);
-        let eight = patterns.remove(6);
+        let one = &patterns[0];
+        let seven = &patterns[1];
+        let four = &patterns[2];
+        let eight = &patterns[9];
 
-        let mut fives: Vec<_> = patterns.drain(0..=2).collect();
-        let mut sixes: Vec<_> = patterns.drain(..).collect();
+        let fives = &patterns[3..=5];
+        let sixes = &patterns[6..=8];
 
-        let three = Signal::remove_filter(&mut fives, |n| n.contains(&one));
-        let nine = Signal::remove_filter(&mut sixes, |n| n.contains(&three));
-        let zero = Signal::remove_filter(&mut sixes, |n| n.contains(&seven) && !n.is(&nine));
-        let six = sixes.remove(0);
-        let five = Signal::remove_filter(&mut fives, |n| six.contains(n));
-        let two = fives.remove(0);
+        let three = fives.iter().find(|&n| n.contains(one)).unwrap();
+        let nine = sixes.iter().find(|&n| n.contains(three)).unwrap();
+        let zero = sixes
+            .iter()
+            .find(|&n| n.contains(seven) && !n.is(nine))
+            .unwrap();
+        let six = sixes.iter().find(|&n| !n.is(nine) && !n.is(zero)).unwrap();
+        let five = fives.iter().find(|&n| six.contains(n)).unwrap();
+        let two = fives.iter().find(|&n| !n.is(five) && !n.is(three)).unwrap();
 
         HashMap::from([
             (zero.hash(), '0'),
@@ -60,18 +63,10 @@ impl Signal {
             (nine.hash(), '9'),
         ])
     }
-
-    fn remove_filter<F>(v: &mut Vec<Num>, f: F) -> Num
-    where
-        F: Fn(&Num) -> bool,
-    {
-        let (idx, _) = v.iter().enumerate().find(|(_i, n)| f(n)).unwrap();
-        v.remove(idx)
-    }
 }
 
 impl Solve for Signal {
-    fn sum_easy_numbers(&self) -> i32 {
+    fn part1(&self) -> i32 {
         let num_digits = [2, 3, 4, 7];
         self.output.iter().fold(0, |acc, o| {
             if num_digits.contains(&(o.len() as i32)) {
@@ -82,7 +77,7 @@ impl Solve for Signal {
         })
     }
 
-    fn output(&self) -> i32 {
+    fn part2(&self) -> i32 {
         let decoder = self.decoder();
 
         self.output
@@ -172,9 +167,9 @@ fn test() {
 		gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce";
 
     let signals = parse(input);
-    let sum = signals.sum_easy_numbers();
+    let sum = signals.part1();
     assert_eq!(sum, 26);
-    let output = signals.output();
+    let output = signals.part2();
     assert_eq!(output, 61229);
 }
 
