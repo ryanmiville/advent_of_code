@@ -1,6 +1,4 @@
-import { parse } from "./util.ts";
-
-const input = `13399
+13399
 13677
 11945
 9861
@@ -2252,22 +2250,4 @@ const input = `13399
 5649
 2533
 5321
-1877`;
-
-class Elf {
-  calories: number[];
-
-  constructor(calories: number[]) {
-    this.calories = calories;
-  }
-
-  total(): number {
-    return this.calories.reduce((acc, curr) => acc + curr);
-  }
-}
-
-const elfs = parse(input).map((c) => new Elf(c));
-
-const answer = Math.max(...elfs.map((e) => e.total()));
-
-console.log(answer);
+1877
