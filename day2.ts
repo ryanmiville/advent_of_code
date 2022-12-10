@@ -39,7 +39,7 @@ function solve(line: string): number {
   }
 }
 
-const input = await Deno.readTextFile("day_02/input.txt");
+const input = await Deno.readTextFile("input/day2.txt");
 const lines = input.split("\n");
 const answer = lines.reduce((acc, line) => acc + solve(line), 0);
 console.log(answer);

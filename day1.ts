@@ -1,4 +1,4 @@
-import { parse } from "../util.ts";
+import { parse } from "./util.ts";
 
 type Elf = number;
 
@@ -15,7 +15,7 @@ function solve(elfs: Elf[], n: number): number {
   return topElfs.reduce((acc, curr) => acc + curr, 0);
 }
 
-const input = await Deno.readTextFile("day_01/input.txt");
+const input = await Deno.readTextFile("input/day1.txt");
 const elfs = parse(input).map(make);
 const answer = solve(elfs, 3);
 

@@ -1,4 +1,4 @@
-import { chunk } from "../util.ts";
+import { chunk } from "./util.ts";
 
 function itemValue(str: string): number {
   const ascii = str.charCodeAt(0);
@@ -14,7 +14,7 @@ const badge = (elfs: string[]): number => {
   return itemValue(r3.find((i) => inBoth.has(i))!);
 };
 
-const input = await Deno.readTextFile("day_03/input.txt");
+const input = await Deno.readTextFile("input/day3.txt");
 const groups = chunk(input.split("\n"), 3);
 const answer = groups.reduce((acc, group) => acc + badge(group), 0);
 

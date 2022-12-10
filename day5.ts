@@ -1,4 +1,4 @@
-import { day5_part1, State } from "../bindings/bindings.ts";
+import { day5_part1, State } from "./bindings/bindings.ts";
 
 const input = await Deno.readTextFile("day_05/input.txt");
 const state = day5_part1(input);

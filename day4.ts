@@ -30,7 +30,7 @@ function parseSection(str: string): Section {
   return { min: +min, max: +max };
 }
 
-const input = await Deno.readTextFile("day_04/input.txt");
+const input = await Deno.readTextFile("input/day4.txt");
 const pairs = input.split("\n").map(parseLine);
 const answer = solve(pairs);
 
