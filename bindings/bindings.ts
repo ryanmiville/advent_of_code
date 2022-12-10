@@ -46,28 +46,25 @@ const opts = {
   policy: CachePolicy.NONE,
 }
 const _lib = await prepare(opts, {
-  part1: {
+  day5_part1: {
     parameters: ["pointer", "usize"],
     result: "pointer",
     nonblocking: false,
   },
 })
-export type Input = {
-  input: string
-}
 export type Move = {
   count: number
   from: number
   to: number
 }
-export type Output = {
+export type State = {
   stacks: Array<Array<string>>
   moves: Array<Move>
 }
-export function part1(a0: Input) {
-  const a0_buf = encode(JSON.stringify(a0))
+export function day5_part1(a0: string) {
+  const a0_buf = encode(a0)
   const a0_ptr = Deno.UnsafePointer.of(a0_buf)
-  let rawResult = _lib.symbols.part1(a0_ptr, a0_buf.byteLength)
+  let rawResult = _lib.symbols.day5_part1(a0_ptr, a0_buf.byteLength)
   const result = readPointer(rawResult)
-  return JSON.parse(decode(result)) as Output
+  return JSON.parse(decode(result)) as State
 }
