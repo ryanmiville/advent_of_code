@@ -1,16 +1,13 @@
 import aoc
-import atto
-import atto/ops
-import atto/text
-import atto/text_util
 import gleam/dict
 import gleam/int
 import gleam/list
-import gleam/option
+import gleam/option.{Some}
 import gleam/result
+import gleam/string
 
 pub fn main() {
-  aoc.run(day: 1, example_answer_1: 11, part_1:, example_answer_2: 31, part_2:)
+  aoc.run(day: 1, part_1: Some(#(11, part_1)), part_2: Some(#(31, part_2)))
 }
 
 pub fn part_1(input: String) {
@@ -34,14 +31,11 @@ pub fn part_2(input: String) {
   acc + next * count
 }
 
-fn parse(input: String) -> #(List(Int), List(Int)) {
-  let line_parser = {
-    use a <- atto.do(text_util.decimal() |> text_util.ws)
-    use b <- atto.do(text_util.decimal() |> text_util.ws)
-    atto.pure(#(a, b))
-  }
-  let parser = ops.many(line_parser)
-
-  let assert Ok(parsed) = atto.run(parser, text.new(input), Nil)
-  list.unzip(parsed)
+fn parse(input: String) {
+  let lines = input |> string.trim_end |> string.split("\n")
+  use #(a, b), line <- list.fold(lines, #([], []))
+  let assert Ok(#(e1, e2)) = string.split_once(line, "   ")
+  let assert Ok(e1) = int.parse(e1)
+  let assert Ok(e2) = int.parse(e2)
+  #([e1, ..a], [e2, ..b])
 }
