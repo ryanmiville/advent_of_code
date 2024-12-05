@@ -4,6 +4,7 @@ import gleam/float
 import gleam/int
 import gleam/io
 import gleam/option.{type Option, None, Some}
+import gleam/result
 import gleam/string
 import gleam_community/ansi
 import simplifile
@@ -15,8 +16,20 @@ pub fn get_input(day: Int, filename: String) {
   )
 }
 
+pub fn get_input_2(day: Int, filename: String) {
+  simplifile.read(
+    "./priv/input/day_" <> int.to_string(day) <> "/" <> filename <> "2.txt",
+  )
+  |> result.or(get_input(day, filename))
+}
+
 pub fn get_example_input(day: Int) {
   simplifile.read("./priv/input/day_" <> int.to_string(day) <> "/example.txt")
+}
+
+pub fn get_example_input_2(day: Int) {
+  simplifile.read("./priv/input/day_" <> int.to_string(day) <> "/example2.txt")
+  |> result.or(get_example_input(day))
 }
 
 pub type Part(a) =
@@ -29,22 +42,30 @@ pub fn run(
 ) {
   io.println(ansi.blue("PART 1:"))
   case part_1 {
-    Some(#(example, func)) -> run_part(day, example, func)
+    Some(#(example_answer, func)) -> {
+      let assert Ok(example) = get_example_input(day)
+      let assert Ok(input) = get_input(day, "input")
+      run_part(example, input, example_answer, func)
+    }
     None -> io.println(ansi.yellow("not implemented"))
   }
   io.println(ansi.blue("\nPART 2:"))
   case part_2 {
-    Some(#(example, func)) -> run_part(day, example, func)
+    Some(#(example_answer, func)) -> {
+      let assert Ok(example) = get_example_input_2(day)
+      let assert Ok(input) = get_input_2(day, "input")
+      run_part(example, input, example_answer, func)
+    }
     None -> io.println(ansi.yellow("not implemented"))
   }
 }
 
 pub fn run_part(
-  day day: Int,
+  example: String,
+  input: String,
   example_answer example_answer: a,
   part part: fn(String) -> a,
 ) -> Nil {
-  let assert Ok(example) = get_input(day, "example")
   let answer = part(example)
   case answer == example_answer {
     True ->
@@ -63,7 +84,6 @@ pub fn run_part(
       ))
   }
 
-  let assert Ok(input) = get_input(day, "input")
   io.print("ANSWER:")
   let answer = {
     use <- timeit()

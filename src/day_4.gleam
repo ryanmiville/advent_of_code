@@ -1,20 +1,20 @@
 import aoc
 import gleam/dict.{type Dict}
 import gleam/list
-import gleam/option.{None, Some}
+import gleam/option.{Some}
 import gleam/result
 import gleam/string
 
 pub fn main() {
-  aoc.run(day: 4, part_1: Some(#(18, part_1)), part_2: None)
+  aoc.run(day: 4, part_1: Some(#(18, part_1)), part_2: Some(#(9, part_2)))
 }
 
 pub fn part_1(input: String) {
   input |> parse |> find_words
 }
 
-pub fn part_2(_input: String) {
-  todo
+pub fn part_2(input: String) {
+  input |> parse |> solve_part_2
 }
 
 fn parse(input: String) -> Puzzle {
@@ -58,18 +58,34 @@ pub type Direction {
 }
 
 pub fn find_words(p: Puzzle) -> Int {
-  let xs = find_xs(p)
+  let xs = find_all(p, X)
   use acc, cell <- list.fold(xs, 0)
   let next_cells = surrounding(p, cell)
   let count = {
     use #(next_cell, letter, direction) <- list.count(next_cells)
-    next(p, next_cell, letter, direction, X)
+    next(p, next_cell, letter, X, direction)
   }
   acc + count
 }
 
-pub fn find_xs(p: Puzzle) -> List(#(Int, Int)) {
-  dict.filter(p, fn(_, v) { v == X })
+pub fn solve_part_2(p: Puzzle) {
+  let aa = find_all(p, A)
+  use acc, cell <- list.fold(aa, 0)
+  let top_left = next_cell(p, cell, UpLeft) |> result.map(fn(x) { x.1 })
+  let top_right = next_cell(p, cell, UpRight) |> result.map(fn(x) { x.1 })
+  let bot_left = next_cell(p, cell, DownLeft) |> result.map(fn(x) { x.1 })
+  let bot_right = next_cell(p, cell, DownRight) |> result.map(fn(x) { x.1 })
+  case top_left, bot_right, bot_left, top_right {
+    Ok(M), Ok(S), Ok(M), Ok(S) -> acc + 1
+    Ok(M), Ok(S), Ok(S), Ok(M) -> acc + 1
+    Ok(S), Ok(M), Ok(M), Ok(S) -> acc + 1
+    Ok(S), Ok(M), Ok(S), Ok(M) -> acc + 1
+    _, _, _, _ -> acc
+  }
+}
+
+pub fn find_all(p: Puzzle, letter: Letter) -> List(#(Int, Int)) {
+  dict.filter(p, fn(_, v) { v == letter })
   |> dict.keys
 }
 
@@ -94,15 +110,15 @@ pub fn next(
   p: Puzzle,
   cell: #(Int, Int),
   current: Letter,
-  direction: Direction,
   previous: Letter,
+  direction: Direction,
 ) -> Bool {
   case previous, current {
     A, S -> True
     X, M | M, A -> {
       {
         use #(next_cell, letter, _) <- result.map(next_cell(p, cell, direction))
-        next(p, next_cell, letter, direction, current)
+        next(p, next_cell, letter, current, direction)
       }
       |> result.unwrap(False)
     }
