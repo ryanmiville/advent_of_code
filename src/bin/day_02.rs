@@ -126,7 +126,6 @@ fn split_number(num: u64, at: u32) -> (u64, u64) {
 
 fn candidates(n: u64) -> Vec<u64> {
     let len = n.ilog10() + 1;
-    eprint
     let mut factors = factors(len);
 
     let mut results = Vec::new();
